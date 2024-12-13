@@ -75,7 +75,21 @@ pub enum LLVMInstruction {
     CustomPatchPoint = 1338,
 }
 
-impl From<LLVMInstruction> for usize {
+impl From<String> for LLVMInstruction {
+    fn from(value: String) -> Self {
+        let ret = match value.to_lowercase().as_str() {
+            "load" => LLVMInstruction::Load,
+            "store" => LLVMInstruction::Store,
+            "ret" => LLVMInstruction::Ret,
+            "br" => LLVMInstruction::Br,
+            "switch" => LLVMInstruction::Switch,
+            _ => panic!("Unknown LLVM instructions with name {}", value),
+        };
+        ret
+    }
+}
+
+impl From<LLVMInstruction> for u8 {
     fn from(value: LLVMInstruction) -> Self {
         value as usize
     }

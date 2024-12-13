@@ -230,7 +230,7 @@ impl DrainFromBytes for Location {
 /// during execution of the PatchPoint. Whether a value must be manually saved
 /// depends on the calling convention used for a given PatchPoint.
 #[repr(C)]
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct LiveOut {
     /// The register that must stay live.
@@ -238,6 +238,13 @@ pub struct LiveOut {
     reserved_0: u8,
     size: u8,
 }
+
+impl LiveOut {
+    pub fn dwarf_regnum(&self) -> u16 {
+        self.dwarf_regnum
+    }
+}
+
 impl DrainFromBytes for LiveOut {
     fn drain_from_bytes(bytes: &mut Bytes) -> Result<Self, ParsingError>
     where
@@ -494,6 +501,7 @@ impl StackMap {
         if let Some(section_range) = stackmap_byte_range {
             let mut bytes = fs::read(path)?;
             let section_bytes = &mut bytes[section_range.clone()];
+            let a = &section_bytes[688..696];
             StackMap::relocate_stackmap_section(&elf, section_range, section_bytes)?;
             return Ok(StackMap::new(&mut section_bytes.to_owned())?);
         }
