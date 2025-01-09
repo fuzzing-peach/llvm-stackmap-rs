@@ -91,7 +91,7 @@ impl From<String> for LLVMInstruction {
 
 impl From<LLVMInstruction> for u8 {
     fn from(value: LLVMInstruction) -> Self {
-        value as usize
+        value as u8
     }
 }
 
