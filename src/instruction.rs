@@ -2,7 +2,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum LLVMInstruction {
     Ret = 1,
     Br = 2,
@@ -73,6 +72,27 @@ pub enum LLVMInstruction {
     Freeze = 67,
     InjectedCall = 1337,
     CustomPatchPoint = 1338,
+}
+
+#[cfg(feature = "serde")]
+impl Serialize for LLVMInstruction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_u32(*self as u32)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for LLVMInstruction {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let value = u32::deserialize(deserializer)?;
+        Ok(LLVMInstruction::try_from(value).unwrap())
+    }
 }
 
 impl From<String> for LLVMInstruction {
@@ -168,7 +188,9 @@ impl TryFrom<usize> for LLVMInstruction {
             v if v == LLVMInstruction::InsertValue as usize => LLVMInstruction::InsertValue,
             v if v == LLVMInstruction::LandingPad as usize => LLVMInstruction::LandingPad,
             v if v == LLVMInstruction::Freeze as usize => LLVMInstruction::Freeze,
-            v if v == LLVMInstruction::CustomPatchPoint as usize => LLVMInstruction::CustomPatchPoint,
+            v if v == LLVMInstruction::CustomPatchPoint as usize => {
+                LLVMInstruction::CustomPatchPoint
+            }
             v if v == LLVMInstruction::InjectedCall as usize => LLVMInstruction::InjectedCall,
             _ => return Err(format!("Unknown LLVM instructions with id {}", value)),
         };
